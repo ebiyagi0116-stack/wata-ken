@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>こどもパントリー新聞</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #d4c89a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Noto Serif JP', serif;
+    }
+
+    /* Instagram square: 1080×1080 → display at 540×540 */
+    .newspaper {
+      width: 1080px;
+      height: 1080px;
+      background: #f5f0e0;
+      border: 6px solid #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: scale(0.5);
+      transform-origin: top left;
+      position: relative;
+    }
+
+    /* ── MASTHEAD ── */
+    .masthead {
+      border-bottom: 5px double #1a1a1a;
+      padding: 10px 24px 8px;
+      text-align: center;
+      background: #f5f0e0;
+      position: relative;
+    }
+    .masthead-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 18px;
+      color: #444;
+      margin-bottom: 4px;
+    }
+    .masthead-title {
+      font-size: 72px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      line-height: 1;
+      color: #1a1a1a;
+      text-shadow: 3px 3px 0 #c8a84b;
+    }
+    .masthead-sub {
+      font-size: 22px;
+      letter-spacing: 0.2em;
+      color: #555;
+      margin-top: 4px;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+
+    /* ── KICKER BAR ── */
+    .kicker-bar {
+      background: #2e6b2e;
+      color: #fff;
+      text-align: center;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      padding: 7px 0;
+      letter-spacing: 0.18em;
+      border-bottom: 3px solid #1a1a1a;
+    }
+
+    /* ── MAIN BODY ── */
+    .body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 2fr 1px 1.4fr;
+      gap: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .col-divider {
+      background: #1a1a1a;
+    }
+
+    /* ── LEFT COLUMN ── */
+    .col-left {
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      border-right: none;
+    }
+
+    .headline {
+      border-bottom: 4px double #1a1a1a;
+      padding-bottom: 10px;
+    }
+    .headline-label {
+      display: inline-block;
+      background: #c0392b;
+      color: #fff;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      padding: 2px 10px;
+      margin-bottom: 6px;
+      letter-spacing: 0.1em;
+    }
+    .headline-date {
+      font-size: 90px;
+      font-weight: 900;
+      color: #c0392b;
+      line-height: 1;
+      letter-spacing: 0.05em;
+    }
+    .headline-date span {
+      font-size: 46px;
+      color: #1a1a1a;
+    }
+    .headline-time {
+      font-size: 40px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+    }
+
+    .section-title {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      border-left: 6px solid #2e6b2e;
+      padding-left: 8px;
+      margin-bottom: 6px;
+      letter-spacing: 0.08em;
+      color: #1a1a1a;
+    }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .item-box {
+      border: 2px solid #1a1a1a;
+      padding: 10px 12px;
+      background: #fffdf5;
+      position: relative;
+    }
+    .item-box .free-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #e67e22;
+      color: #fff;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.2;
+      border: 2px solid #fff;
+    }
+    .item-name {
+      font-size: 30px;
+      font-weight: 900;
+      color: #c0392b;
+      line-height: 1.1;
+    }
+    .item-qty {
+      font-size: 20px;
+      color: #333;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .item-note {
+      font-size: 14px;
+      color: #777;
+      font-family: 'Noto Sans JP', sans-serif;
+      margin-top: 2px;
+    }
+
+    .book-box {
+      border: 2px solid #1a1a1a;
+      background: #fff9e6;
+      padding: 12px 14px;
+    }
+    .book-headline {
+      font-size: 28px;
+      font-weight: 900;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+    .book-sub {
+      font-size: 20px;
+      color: #555;
+      font-family: 'Noto Sans JP', sans-serif;
+      margin-top: 4px;
+    }
+
+    /* ── RIGHT COLUMN ── */
+    .col-right {
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .target-box {
+      border: 3px solid #1a1a1a;
+      padding: 12px 14px;
+      background: #fff0f0;
+    }
+    .target-title {
+      font-size: 18px;
+      font-weight: 700;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: #888;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+    }
+    .target-main {
+      font-size: 32px;
+      font-weight: 900;
+      color: #c0392b;
+      line-height: 1.2;
+    }
+    .target-note {
+      font-size: 16px;
+      color: #555;
+      font-family: 'Noto Sans JP', sans-serif;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .venue-box {
+      border: 2px solid #1a1a1a;
+      padding: 10px 14px;
+      background: #fffdf5;
+    }
+    .venue-label {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 16px;
+      color: #888;
+      letter-spacing: 0.15em;
+    }
+    .venue-name {
+      font-size: 28px;
+      font-weight: 900;
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+    .venue-addr {
+      font-size: 16px;
+      color: #555;
+      font-family: 'Noto Sans JP', sans-serif;
+      margin-top: 4px;
+    }
+
+    .event-box {
+      flex: 1;
+      border: 3px double #2e6b2e;
+      padding: 12px 14px;
+      background: #f0f7f0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .event-title {
+      font-size: 26px;
+      font-weight: 900;
+      color: #2e6b2e;
+      line-height: 1.3;
+      border-bottom: 2px solid #2e6b2e;
+      padding-bottom: 6px;
+    }
+    .event-body {
+      font-size: 17px;
+      color: #333;
+      font-family: 'Noto Sans JP', sans-serif;
+      line-height: 1.7;
+    }
+    .event-body li {
+      list-style: none;
+      padding-left: 1.2em;
+      position: relative;
+    }
+    .event-body li::before {
+      content: "◆";
+      position: absolute;
+      left: 0;
+      color: #2e6b2e;
+      font-size: 12px;
+      top: 4px;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      border-top: 4px double #1a1a1a;
+      padding: 8px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f5f0e0;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .footer-contact {
+      font-size: 17px;
+      color: #333;
+    }
+    .footer-org {
+      font-size: 17px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    .footer-free {
+      font-size: 18px;
+      font-weight: 700;
+      color: #c0392b;
+      border: 2px solid #c0392b;
+      padding: 2px 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="newspaper">
+
+    <!-- MASTHEAD -->
+    <div class="masthead">
+      <div class="masthead-top">
+        <span>2025年（令和7年）4月29日（祝）</span>
+        <span>こどもたちに笑顔と絵本と食材を！</span>
+      </div>
+      <div class="masthead-title">こどもパントリー新聞</div>
+      <div class="masthead-sub">スマイルテイクチャリティ　特別号</div>
+    </div>
+
+    <!-- KICKER -->
+    <div class="kicker-bar">🌟 GWだ！ちびっこ集まれ！会場でまってるよ！ 🌟</div>
+
+    <!-- BODY -->
+    <div class="body">
+
+      <!-- LEFT -->
+      <div class="col-left">
+
+        <div class="headline">
+          <div class="headline-label">開催日時</div>
+          <div class="headline-date">4<span>月</span>29<span>日</span></div>
+          <div class="headline-time">11 : 30 〜 14 : 00</div>
+        </div>
+
+        <div>
+          <div class="section-title">★ 楽しみパントリー ★　無料配布</div>
+          <div class="items-grid">
+            <div class="item-box">
+              <div class="free-badge">無料<br>配布</div>
+              <div class="item-name">お米</div>
+              <div class="item-qty">1人：2 kg</div>
+              <div class="item-note">※無くなり次第終了</div>
+            </div>
+            <div class="item-box">
+              <div class="free-badge">無料<br>配布</div>
+              <div class="item-name">食パン</div>
+              <div class="item-qty">1人：1 斤</div>
+              <div class="item-note">※無くなり次第終了</div>
+            </div>
+            <div class="item-box">
+              <div class="free-badge">無料<br>配布</div>
+              <div class="item-name">ヨーグルト<br>ゼリー</div>
+              <div class="item-qty"></div>
+              <div class="item-note">※無くなり次第終了</div>
+            </div>
+            <div class="item-box">
+              <div class="item-name" style="font-size:22px;color:#1a1a1a;">こども食堂<br>応援パン</div>
+              <div class="item-qty" style="color:#c0392b;font-weight:900;">300円</div>
+              <div class="item-note">食堂支援に直結！</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="book-box">
+          <div class="section-title">絵本・児童書</div>
+          <div class="book-headline">絵本や児童書を<br>無料で配布します！</div>
+          <div class="book-sub">📚 1人につき3冊まで　※絵本で笑顔のリサイクル！</div>
+        </div>
+
+      </div>
+
+      <div class="col-divider"></div>
+
+      <!-- RIGHT -->
+      <div class="col-right">
+
+        <div class="target-box">
+          <div class="target-title">▼ 参加対象</div>
+          <div class="target-main">中学生以下<br>のこども</div>
+          <div class="target-note">
+            お父さん・お母さんもご一緒にどうぞ<br>
+            低学年のお子さまは保護者同伴でお願いします<br>
+            <span style="color:#c0392b;">※無くなり次第終了・閉店します</span>
+          </div>
+        </div>
+
+        <div class="venue-box">
+          <div class="venue-label">▼ ところ</div>
+          <div class="venue-name">このまちくらす</div>
+          <div class="venue-addr">豊橋市向山大池町19-11<br>※駐車場はございません</div>
+        </div>
+
+        <div class="event-box">
+          <div class="event-title">☕ 親子でわくわく！<br>ハンドドリップ体験</div>
+          <div class="event-body">
+            <p style="margin-bottom:6px;">「ありがとう」をコーヒーにこめて！</p>
+            <ul>
+              <li>コーヒーの簡単なお話</li>
+              <li>ハンドドリップ体験</li>
+            </ul>
+            <p style="margin-top:8px;">みんなで「やさしいコーヒータイム」をたのしもう！</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <div class="footer-org">応援チーム　このまちくらす</div>
+      <div class="footer-contact">☎ 090-7022-3787（花井）<br>事務局：豊橋市向山大池町19-11</div>
+      <div class="footer-free">予約不要・無料入場</div>
+    </div>
+
+  </div>
+</body>
+</html>
