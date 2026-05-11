@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>WATA-KEN 10秒チャレンジ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap');
+
+  :root {
+    --cotton: #FFB7D5;
+    --cotton2: #FF85C0;
+    --sky: #87CEEB;
+    --yellow: #FFE566;
+    --dark: #1a1a2e;
+    --white: #FFFFFF;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: linear-gradient(160deg, #87CEEB 0%, #B8E4F7 40%, #FFD4EC 75%, #FFB7D5 100%);
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ふわふわ背景 */
+  .fluff {
+    position: absolute; border-radius: 50%;
+    filter: blur(60px); opacity: 0.3; pointer-events: none;
+    animation: float 8s ease-in-out infinite;
+  }
+  .fluff:nth-child(1){width:300px;height:300px;background:#FFB7D5;top:-80px;left:-80px;animation-delay:0s}
+  .fluff:nth-child(2){width:250px;height:250px;background:#87CEEB;top:10%;right:-60px;animation-delay:2s}
+  .fluff:nth-child(3){width:200px;height:200px;background:#FFE566;bottom:5%;left:10%;animation-delay:4s}
+  .fluff:nth-child(4){width:180px;height:180px;background:#FF85C0;bottom:-50px;right:5%;animation-delay:1s}
+  @keyframes float {
+    0%,100%{transform:translateY(0) scale(1)}
+    50%{transform:translateY(-20px) scale(1.05)}
+  }
+
+  /* ========== 画面共通 ========== */
+  .screen {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .screen.hidden {
+    opacity: 0; pointer-events: none; transform: scale(0.97);
+  }
+
+  /* ========== 待機画面 ========== */
+  #standby { gap: 28px; cursor: pointer; }
+
+  .standby-brand {
+    font-weight: 900;
+    font-size: clamp(36px, 9vw, 64px);
+    color: var(--white);
+    text-shadow: 3px 3px 0 var(--cotton2), 6px 6px 0 rgba(0,0,0,0.1);
+    letter-spacing: 6px; text-align: center;
+  }
+  .standby-badge {
+    font-size: clamp(16px, 4vw, 24px); font-weight: 700;
+    color: var(--dark); background: var(--yellow);
+    padding: 6px 28px; border-radius: 30px; letter-spacing: 3px;
+  }
+  .standby-prize {
+    background: white; border: 4px solid var(--cotton2);
+    border-radius: 24px; padding: 20px 40px; text-align: center;
+    box-shadow: 0 8px 30px rgba(255,133,192,0.3);
+    width: min(500px, 90vw);
+  }
+  .standby-prize-label {
+    font-size: clamp(13px, 3vw, 18px); color: #888;
+    font-weight: 700; letter-spacing: 2px;
+  }
+  .standby-prize-text {
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: 900; color: var(--dark); line-height: 1.3;
+  }
+  .standby-prize-text span { color: var(--cotton2); }
+
+  .tap-hint {
+    font-size: clamp(16px, 3.5vw, 22px); font-weight: 700;
+    color: rgba(26,26,46,0.6); letter-spacing: 2px;
+    animation: blink 1.8s ease-in-out infinite;
+  }
+  @keyframes blink {
+    0%,100%{opacity:1} 50%{opacity:0.3}
+  }
+
+  /* ========== ゲーム画面 ========== */
+  #game { gap: 20px; }
+
+  .game-header { text-align: center; }
+  .game-brand {
+    font-weight: 900; font-size: clamp(20px, 4vw, 28px);
+    color: var(--white); text-shadow: 2px 2px 0 var(--cotton2);
+    letter-spacing: 4px;
+  }
+  .game-sub {
+    font-size: clamp(12px, 2.5vw, 16px); font-weight: 700;
+    color: var(--dark); background: var(--yellow);
+    display: inline-block; padding: 2px 16px;
+    border-radius: 20px; margin-top: 6px; letter-spacing: 2px;
+  }
+
+  .timer-card {
+    background: var(--dark); border-radius: 24px;
+    padding: 24px 40px; width: min(560px, 90vw);
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(26,26,46,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+    position: relative; overflow: hidden;
+  }
+  .timer-card::before {
+    content: ''; position: absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, transparent, var(--cotton), var(--yellow), var(--cotton), transparent);
+  }
+  .timer-display {
+    font-family: 'Orbitron', monospace; font-weight: 900;
+    font-size: clamp(64px, 16vw, 110px);
+    color: #FF4D4D;
+    text-shadow: 0 0 20px rgba(255,77,77,0.8), 0 0 40px rgba(255,77,77,0.4);
+    letter-spacing: 4px; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .timer-display.running {
+    color: #FF8C00;
+    text-shadow: 0 0 20px rgba(255,140,0,0.8), 0 0 40px rgba(255,140,0,0.4);
+  }
+  .timer-display.near {
+    color: #FFE566;
+    text-shadow: 0 0 20px rgba(255,229,102,0.8), 0 0 40px rgba(255,229,102,0.4);
+    animation: pulse-timer 0.25s ease-in-out infinite;
+  }
+  @keyframes pulse-timer {
+    0%,100%{transform:scale(1)} 50%{transform:scale(1.03)}
+  }
+  .timer-hint {
+    font-size: clamp(11px, 2vw, 14px);
+    color: rgba(255,255,255,0.4); margin-top: 8px; letter-spacing: 1px;
+  }
+
+  .main-btn {
+    width: 200px; height: 200px; border-radius: 50%; border: none;
+    cursor: pointer; position: relative;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    user-select: none; -webkit-user-select: none;
+    touch-action: manipulation;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .main-btn::before {
+    content: ''; position: absolute;
+    top:15px; left:20px; right:60px; height:36px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50%; transform: rotate(-20deg);
+  }
+  .main-btn.idle {
+    background: radial-gradient(circle at 35% 35%, #FF85C0, #FF3399);
+    box-shadow: 0 8px 0 #C41F79, 0 12px 30px rgba(255,51,153,0.5);
+    animation: idle-bounce 2s ease-in-out infinite;
+  }
+  .main-btn.running-btn {
+    background: radial-gradient(circle at 35% 35%, #FFE566, #FFA500);
+    box-shadow: 0 8px 0 #CC7700, 0 12px 30px rgba(255,165,0,0.5);
+    animation: none;
+  }
+  .main-btn:active {
+    transform: translateY(6px) !important;
+    box-shadow: 0 2px 0 #C41F79, 0 4px 15px rgba(0,0,0,0.2) !important;
+    animation: none !important;
+  }
+  @keyframes idle-bounce {
+    0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)}
+  }
+  .btn-label {
+    font-weight: 900; font-size: clamp(20px, 4vw, 26px);
+    color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    letter-spacing: 2px; z-index:1;
+  }
+  .btn-sub {
+    font-size: clamp(11px, 2vw, 13px); color: rgba(255,255,255,0.85);
+    font-weight: 700; z-index:1; margin-top:4px;
+  }
+
+  .rules {
+    background: rgba(255,255,255,0.5); border-radius: 16px;
+    padding: 12px 20px; width: min(560px, 90vw);
+    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.8);
+  }
+  .rules-title {
+    font-weight: 900; font-size: 13px; color: var(--dark);
+    letter-spacing: 2px; margin-bottom: 6px;
+  }
+  .rules-list { list-style:none; display:flex; flex-direction:column; gap:3px; }
+  .rules-list li {
+    font-size: 12px; color: #444; font-weight: 700;
+    display: flex; align-items: flex-start; gap: 6px;
+  }
+  .rules-list li::before {
+    content:'▶'; color:var(--cotton2); font-size:9px;
+    margin-top:2px; flex-shrink:0;
+  }
+
+  /* ========== 結果オーバーレイ ========== */
+  #result {
+    position: fixed; inset:0; z-index:100;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+    opacity:0; pointer-events:none; transition: opacity 0.35s;
+  }
+  #result.show { opacity:1; pointer-events:all; }
+  #result.success-bg {
+    background: radial-gradient(circle, rgba(74,222,128,0.97) 0%, rgba(34,197,94,0.99) 100%);
+  }
+  #result.fail-bg {
+    background: radial-gradient(circle, rgba(255,107,107,0.97) 0%, rgba(239,68,68,0.99) 100%);
+  }
+
+  .result-emoji {
+    font-size: clamp(80px, 18vw, 130px); line-height:1;
+    animation: pop-in 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  .result-title {
+    font-weight: 900; font-size: clamp(36px, 9vw, 70px);
+    color: white; text-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    letter-spacing: 2px;
+    animation: pop-in 0.4s 0.1s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+  .result-time {
+    font-family: 'Orbitron', monospace; font-weight:700;
+    font-size: clamp(22px, 5vw, 38px); color: rgba(255,255,255,0.9);
+    animation: pop-in 0.4s 0.15s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+  .result-msg {
+    font-size: clamp(16px, 3.5vw, 24px); font-weight:700;
+    color: white; text-align:center; padding: 0 24px;
+    text-shadow: 0 2px 6px rgba(0,0,0,0.15); line-height:1.6;
+    white-space: pre-line;
+    animation: pop-in 0.4s 0.2s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+  .result-return {
+    margin-top: 28px; background: white; border:none;
+    border-radius:40px; padding: 14px 48px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight:900; font-size: clamp(16px,3vw,20px);
+    color: var(--dark); cursor:pointer; letter-spacing:2px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2); touch-action:manipulation;
+    animation: pop-in 0.4s 0.3s cubic-bezier(0.175,0.885,0.32,1.275) both;
+  }
+  .result-return:active { transform:scale(0.96); }
+
+  @keyframes pop-in {
+    0%{opacity:0;transform:scale(0.5)}
+    100%{opacity:1;transform:scale(1)}
+  }
+
+  .confetti-piece {
+    position:fixed; width:10px; height:14px;
+    top:-20px; opacity:0; pointer-events:none; z-index:200;
+    animation: confetti-fall 2.5s ease-in forwards;
+  }
+  @keyframes confetti-fall {
+    0%{opacity:1;transform:translateY(0) rotate(0deg)}
+    100%{opacity:0;transform:translateY(110vh) rotate(720deg)}
+  }
+</style>
+</head>
+<body>
+
+<div class="fluff"></div>
+<div class="fluff"></div>
+<div class="fluff"></div>
+<div class="fluff"></div>
+
+<!-- ===== 待機画面 ===== -->
+<div class="screen" id="standby" onclick="goToGame()">
+  <div class="standby-brand">🍬 WATA-KEN</div>
+  <div class="standby-badge">10秒チャレンジ！</div>
+  <div class="standby-prize">
+    <div class="standby-prize-label">ぴったり10秒で止めたら…</div>
+    <div class="standby-prize-text">お好きな商品 <span>1個 無料！</span>🎁</div>
+  </div>
+  <div class="tap-hint">👆 タップしてスタート</div>
+</div>
+
+<!-- ===== ゲーム画面 ===== -->
+<div class="screen hidden" id="game">
+  <div class="game-header">
+    <div class="game-brand">🍬 WATA-KEN</div>
+    <div class="game-sub">10秒チャレンジ！</div>
+  </div>
+
+  <div class="timer-card">
+    <div class="timer-display" id="timerDisplay">00.00</div>
+    <div class="timer-hint" id="timerHint">ボタンを押してスタート！</div>
+  </div>
+
+  <button class="main-btn idle" id="mainBtn" onclick="handleBtn()">
+    <span class="btn-label" id="btnLabel">START</span>
+    <span class="btn-sub" id="btnSub">タップ！</span>
+  </button>
+
+  <div class="rules">
+    <div class="rules-title">📋 ルール</div>
+    <ul class="rules-list">
+      <li>ボタンを押してタイマーをスタート</li>
+      <li>「10.00」ぴったりで止めるとお好きな商品1個無料！</li>
+      <li>1会計につき1回限り</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== 結果オーバーレイ ===== -->
+<div id="result">
+  <div class="result-emoji" id="resultEmoji"></div>
+  <div class="result-title" id="resultTitle"></div>
+  <div class="result-time" id="resultTime"></div>
+  <div class="result-msg" id="resultMsg"></div>
+  <button class="result-return" onclick="goToStandby()">また来てね！👋</button>
+</div>
+
+<script>
+
+  /* ===== Audio (Web Audio API) ===== */
+  var audioCtx = null;
+  var nearBeepInterval = null;
+  var lastTickSec = -1;
+
+  function getCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return audioCtx;
+  }
+
+  function playTone(freq, duration, type, vol, delay) {
+    type = type||"triangle"; vol = vol||0.4; delay = delay||0;
+    var ctx = getCtx();
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime+delay);
+    gain.gain.setValueAtTime(0, ctx.currentTime+delay);
+    gain.gain.linearRampToValueAtTime(vol, ctx.currentTime+delay+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+delay+duration);
+    osc.start(ctx.currentTime+delay);
+    osc.stop(ctx.currentTime+delay+duration+0.05);
+  }
+
+  function playStart() {
+    playTone(523,0.12,"triangle",0.5,0);
+    playTone(784,0.15,"triangle",0.5,0.13);
+  }
+
+  function playTick(sec) {
+    playTone(sec>=9?900:660, 0.06, "square", 0.22, 0);
+  }
+
+  function startNearBeep() {
+    stopNearBeep();
+    nearBeepInterval = setInterval(function(){playTone(1047,0.05,"square",0.18,0);}, 140);
+  }
+  function stopNearBeep() {
+    if (nearBeepInterval){clearInterval(nearBeepInterval);nearBeepInterval=null;}
+  }
+
+  function playStop() { playTone(440,0.1,"triangle",0.4,0); }
+
+  function playSuccess() {
+    [523,659,784,1047].forEach(function(f,i){playTone(f,0.18,"triangle",0.5,i*0.15);});
+    setTimeout(function(){
+      playTone(523,0.5,"triangle",0.3,0);
+      playTone(659,0.5,"triangle",0.3,0);
+      playTone(784,0.5,"triangle",0.3,0);
+    },700);
+  }
+
+  function playFail() {
+    playTone(330,0.15,"sawtooth",0.35,0);
+    playTone(220,0.3,"sawtooth",0.35,0.18);
+  }
+
+  let startTime = null;
+  let animFrame = null;
+  let running   = false;
+
+  const display  = document.getElementById('timerDisplay');
+  const hint     = document.getElementById('timerHint');
+  const mainBtn  = document.getElementById('mainBtn');
+  const btnLabel = document.getElementById('btnLabel');
+  const btnSub   = document.getElementById('btnSub');
+
+  /* --- 画面切替 --- */
+  function goToGame() {
+    // タップのタイミングでAudioContext初期化（Safari対策）
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    document.getElementById('standby').classList.add('hidden');
+    document.getElementById('game').classList.remove('hidden');
+    resetTimer();
+  }
+
+  function goToStandby() {
+    document.getElementById('result').className = '';
+    document.getElementById('game').classList.add('hidden');
+    document.getElementById('standby').classList.remove('hidden');
+  }
+
+  /* --- ゲーム操作 --- */
+  function handleBtn() {
+    if (!running) {
+      startTimer();
+    } else {
+      stopTimer();
+    }
+  }
+
+  function startTimer() {
+    running   = true;
+    startTime = performance.now();
+    lastTickSec = -1;
+    playStart();
+    mainBtn.className    = 'main-btn running-btn';
+    btnLabel.textContent = 'STOP';
+    btnSub.textContent   = '10秒でとめろ！';
+    hint.textContent     = '今だ！ぴったり10秒で止めて！';
+    update();
+  }
+
+  function update() {
+    if (!running) return;
+    const elapsed = (performance.now() - startTime) / 1000;
+    const sec = Math.floor(elapsed);
+    const ms  = Math.floor((elapsed - sec) * 100);
+    display.textContent = String(sec).padStart(2,'0') + '.' + String(ms).padStart(2,'0');
+
+    display.className = (elapsed >= 9.5 && elapsed < 10.2)
+      ? 'timer-display near'
+      : 'timer-display running';
+    var tsec=Math.floor(elapsed);
+    if(tsec!==lastTickSec&&tsec<10){lastTickSec=tsec;playTick(tsec);}
+    if(elapsed>=9.5&&elapsed<10.2&&!nearBeepInterval){startNearBeep();}
+    else if((elapsed<9.5||elapsed>=10.2)&&nearBeepInterval){stopNearBeep();}
+
+    if (elapsed > 30) { stopTimer(); return; }
+    animFrame = requestAnimationFrame(update);
+  }
+
+  function stopTimer() {
+    if (!running) return;
+    running = false;
+    stopNearBeep();
+    cancelAnimationFrame(animFrame);
+
+    stopNearBeep();playStop();
+    const elapsed = (performance.now() - startTime) / 1000;
+    const diff    = Math.abs(elapsed - 10.0);
+    const success = diff < 0.005;
+
+    showResult(elapsed, success);
+  }
+
+  function showResult(elapsed, success) {
+    const result = document.getElementById('result');
+    const diff   = elapsed - 10.0;
+
+    document.getElementById('resultEmoji').textContent = success ? '🎉' : (diff < 0 ? '⏩' : '⏰');
+    document.getElementById('resultTitle').textContent = success ? '成功！！！' : 'ざんねん…';
+    document.getElementById('resultTime').textContent  = elapsed.toFixed(2) + '秒';
+
+    if (success) {
+      result.className = 'show success-bg';
+      playSuccess();
+      document.getElementById('resultMsg').textContent = 'お好きな商品1個プレゼント🎁\nスタッフにお声がけください！';
+      launchConfetti();
+    } else {
+      result.className = 'show fail-bg';
+      playFail();
+      document.getElementById('resultMsg').textContent = diff < 0
+        ? 'あと ' + Math.abs(diff).toFixed(2) + '秒 早かった…\nまたチャレンジしてね！'
+        : diff.toFixed(2) + '秒 オーバー…\nまたチャレンジしてね！';
+    }
+  }
+
+  function resetTimer() {
+    running = false;
+    stopNearBeep();
+    cancelAnimationFrame(animFrame);
+    startTime = null;
+    display.textContent  = '00.00';
+    display.className    = 'timer-display';
+    hint.textContent     = 'ボタンを押してスタート！';
+    mainBtn.className    = 'main-btn idle';
+    btnLabel.textContent = 'START';
+    btnSub.textContent   = 'タップ！';
+  }
+
+  function launchConfetti() {
+    const colors = ['#FFB7D5','#87CEEB','#FFE566','#FF85C0','#4ADE80','#FFFFFF'];
+    for (let i = 0; i < 60; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        el.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+        el.style.animationDelay    = (Math.random() * 0.5) + 's';
+        el.style.transform = `rotate(${Math.random()*360}deg)`;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+      }, i * 30);
+    }
+  }
+</script>
+</body>
+</html>
